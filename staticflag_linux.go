@@ -2,5 +2,5 @@
 
 package gorocksdb
 
-// #cgo LDFLAGS: -l:librocksdb.a -l:libstdc++.a -lm -ldl
+// #cgo LDFLAGS: -l:librocksdb.a -lstdc++ -lm -lz -bz2 -lsnappy
 import "C"
