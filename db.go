@@ -592,6 +592,8 @@ func (db *DB) GetApproximateSizes(ranges []Range) []uint64 {
 	cLimits := make([]*C.char, len(ranges))
 	cStartLens := make([]C.size_t, len(ranges))
 	cLimitLens := make([]C.size_t, len(ranges))
+	errSize := 32
+	errStr := make([]*C.char, errSize)
 	for i, r := range ranges {
 		cStarts[i] = (*C.char)(C.CBytes(r.Start))
 		cStartLens[i] = C.size_t(len(r.Start))
@@ -604,6 +606,9 @@ func (db *DB) GetApproximateSizes(ranges []Range) []uint64 {
 			C.free(unsafe.Pointer(cStarts[i]))
 			C.free(unsafe.Pointer(cLimits[i]))
 		}
+		for i := 0; i < errSize; i++ {
+			C.free(unsafe.Pointer(errStr[i]))
+		}
 	}()
 
 	C.rocksdb_approximate_sizes(
@@ -613,7 +618,8 @@ func (db *DB) GetApproximateSizes(ranges []Range) []uint64 {
 		&cStartLens[0],
 		&cLimits[0],
 		&cLimitLens[0],
-		(*C.uint64_t)(&sizes[0]))
+		(*C.uint64_t)(&sizes[0]),
+		(**C.char)(unsafe.Pointer(&errStr[0])))
 
 	return sizes
 }
@@ -633,6 +639,8 @@ func (db *DB) GetApproximateSizesCF(cf *ColumnFamilyHandle, ranges []Range) []ui
 	cLimits := make([]*C.char, len(ranges))
 	cStartLens := make([]C.size_t, len(ranges))
 	cLimitLens := make([]C.size_t, len(ranges))
+	errSize := 32
+	errStr := make([]*C.char, errSize)
 	for i, r := range ranges {
 		cStarts[i] = (*C.char)(C.CBytes(r.Start))
 		cStartLens[i] = C.size_t(len(r.Start))
@@ -645,6 +653,9 @@ func (db *DB) GetApproximateSizesCF(cf *ColumnFamilyHandle, ranges []Range) []ui
 			C.free(unsafe.Pointer(cStarts[i]))
 			C.free(unsafe.Pointer(cLimits[i]))
 		}
+		for i := 0; i < errSize; i++ {
+			C.free(unsafe.Pointer(errStr[i]))
+		}
 	}()
 
 	C.rocksdb_approximate_sizes_cf(
@@ -655,7 +666,8 @@ func (db *DB) GetApproximateSizesCF(cf *ColumnFamilyHandle, ranges []Range) []ui
 		&cStartLens[0],
 		&cLimits[0],
 		&cLimitLens[0],
-		(*C.uint64_t)(&sizes[0]))
+		(*C.uint64_t)(&sizes[0]),
+		(**C.char)(unsafe.Pointer(&errStr[0])))
 
 	return sizes
 }
